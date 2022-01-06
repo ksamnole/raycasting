@@ -7,8 +7,10 @@
 - __Проделанная работа:__
   - Созданы два объекта - сфера и плоскость.
   - Реализовано освещение объектов и отражение лучей от их поверхностей.
-  - Возможность создавать несколько объектов, источников освещения и распологоать объекты в любых координатах.
+  - Возможность создавать несколько объектов, источников освещения и располагать объекты в любых координатах.
   - Поворот камеры, объекта и источника света.
-- __Примеры__ 
-# TODO Добавить изображения
-***
+
+## Примеры
+![Ray tracing with reflection and color](RayCasting/examples/WithReflectionAndColor.png)
+![Ray tracing with strong lighting](RayCasting/examples/StrongLighting.png)
+![Ray tracing without reflection and color](RayCasting/examples/WithoutReflectionAndColor.png)
