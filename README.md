@@ -1,5 +1,8 @@
 # RayCasting
 
+*Идею и некоторые куски кода взял с канала [Onigiri](https://www.youtube.com/channel/UCzdmz_lLWT_dPqOvFjXAMVg).*  
+*А именно из этого видео: https://www.youtube.com/watch?v=TTqLX0OHZzI.*
+
 ## Описание
 - __[Wikipedia](https://ru.wikipedia.org/wiki/Ray_casting)__
 - __Описание:__
