@@ -58,17 +58,49 @@ namespace RayCasting
 
         private Vector3 CastRay(Vector3 origin, Vector3 direction)
         {
-            var spherePos = new Vector3(0.0f, 0.0f, 0.0f);
-            var it = SphereIntersect(origin - spherePos, direction, 0.5f);
+            var minIntersect = new Vector2(float.MaxValue);
+            var color = new Vector3(0.5f, 0.5f, 1.0f);
+            Vector3 n = Vector3.Zero;
+            // Пересечение с 1 сферой
+            var sphere1Pos = new Vector3(0.5f, 0.0f, 0.0f);
+            var intersect1 = SphereIntersect(origin - sphere1Pos, direction, 0.5f);
+            if (intersect1.X > 0.0f && intersect1.X < minIntersect.X)
+            {
+                minIntersect = intersect1;
+                var itPos = origin + direction * intersect1.X;
+                n = itPos - sphere1Pos;
+                color = new Vector3(1.0f, 0.2f, 0.1f);
+            }
+            // Пересечение со 2 сферой
+            var sphere2Pos = new Vector3(-0.75f, 0.0f, 0.5f);
+            var intersect2 = SphereIntersect(origin - sphere2Pos, direction, 0.5f);
+            if (intersect2.X > 0.0f && intersect2.X < minIntersect.X)
+            {
+                minIntersect = intersect2;
+                var itPos = origin + direction * intersect2.X;
+                n = itPos - sphere2Pos;
+                color = new Vector3(255f / 255, 165f / 255, 201f / 255);
+            }
+            var plateNormal = new Vector3(0.0f, 0.5f, 0.0f);
+            var intersect3 = new Vector2(PlaneIntersect(origin, direction, new Vector4(plateNormal, 1.0f)));
+            if (intersect3.X > 0.0f && intersect3.X < minIntersect.X)
+            {
+                minIntersect = intersect3;
+                n = plateNormal;
+                color = new Vector3(0.5f, 0.5f, 1.0f);
+            }
             // Проверка попал ли луч в объект, если нет то возвращаем цвет неба.
-            if (it.X < 0.0)
+            if (minIntersect.X == float.MaxValue)
                 return new Vector3(0.3f, 0.6f, 1.0f);
-            var itPos = origin + direction * it.X;
             // Направление освещения
-            var light = Vector3.Normalize(new Vector3((float)Math.Cos(rotation), 0.75f, -0.5f));
+            var light = Vector3.Normalize(new Vector3((float)Math.Cos(rotation), 1f, -0.75f));
             // Расчет освещения
-            var diffuse = Math.Max(0.0f, Vector3.Dot(light, itPos)) * 0.5f + 0.1f;
-            return new Vector3(diffuse);
+            var diffuse = Math.Max(0.0f, Vector3.Dot(light, n)) * 0.5f + 0.1f;
+            // Добавляем отражение
+            var reflected = direction - 2.0f * Vector3.Dot(direction, n) * n;
+            var specular = Math.Max(0.0f, Vector3.Dot(reflected, light));
+            color *= new Vector3(diffuse + (float)specular);
+            return color;
         }
 
         private float PlaneIntersect(Vector3 origin, Vector3 direction, Vector4 p)
