@@ -27,7 +27,7 @@ namespace RayCasting
             GL.ClearColor(OpenTK.Graphics.Color4.CornflowerBlue);
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            var cameraOrigin = new Vector3(0.0f, 0.0f, -1.5f);
+            var cameraOrigin = new Vector3(0.0f, 0.0f, -3.0f);
             GL.Begin(PrimitiveType.Points);
             // Пускаем лучи в каждый пиксель экрана
             for (var x = 0; x < Width; x++)
@@ -62,8 +62,8 @@ namespace RayCasting
             var color = new Vector3(0.5f, 0.5f, 1.0f);
             Vector3 n = Vector3.Zero;
             // Пересечение с 1 сферой
-            var sphere1Pos = new Vector3(0.5f, 0.0f, 0.0f);
-            var intersect1 = SphereIntersect(origin - sphere1Pos, direction, 0.5f);
+            var sphere1Pos = new Vector3(0.75f, -0.25f, -1.0f);
+            var intersect1 = SphereIntersect(origin - sphere1Pos, direction, 0.7f);
             if (intersect1.X > 0.0f && intersect1.X < minIntersect.X)
             {
                 minIntersect = intersect1;
@@ -72,8 +72,8 @@ namespace RayCasting
                 color = new Vector3(1.0f, 0.2f, 0.1f);
             }
             // Пересечение со 2 сферой
-            var sphere2Pos = new Vector3(-0.75f, 0.0f, 0.5f);
-            var intersect2 = SphereIntersect(origin - sphere2Pos, direction, 0.5f);
+            var sphere2Pos = new Vector3(0.0f, -0.5f, -1.65f);
+            var intersect2 = SphereIntersect(origin - sphere2Pos, direction, 0.35f);
             if (intersect2.X > 0.0f && intersect2.X < minIntersect.X)
             {
                 minIntersect = intersect2;
@@ -89,6 +89,16 @@ namespace RayCasting
                 minIntersect = intersect3;
                 n = plateNormal;
                 color = new Vector3(0.5f, 0.5f, 1.0f);
+            }
+            // Пересеченик с BoxSphere
+            var posboxSphere = new Vector3(-0.65f, 0.0f, -1.0f);
+            var intersect4 = new Vector2(BoxSphereIntersect(origin - posboxSphere, direction, 0.65f));
+            if (intersect4.X > 0.0f && intersect4.X < minIntersect.X)
+            {
+                minIntersect = intersect4;
+                var itPos = origin + direction * intersect4.X - posboxSphere;
+                n = boxSphereNormal(itPos) - posboxSphere;
+                color = new Vector3(0.7f, 0.1f, 0.3f);
             }
             // Проверка попал ли луч в объект, если нет то возвращаем цвет неба.
             if (minIntersect.X == float.MaxValue)
@@ -120,6 +130,11 @@ namespace RayCasting
                 return new Vector2(-1.0f, 0.0f);
             h = (float)Math.Sqrt(h);
             return new Vector2(-b - h, -b + h);
+        }
+
+        private Vector3 boxSphereNormal(Vector3 pos)
+        {
+            return Vector3.Normalize(pos * pos * pos);
         }
 
         private float BoxSphereIntersect(Vector3 ro, Vector3 rd, float ra)
