@@ -81,6 +81,7 @@ namespace RayCasting
                 n = itPos - sphere2Pos;
                 color = new Vector3(255f / 255, 165f / 255, 201f / 255);
             }
+            // Пересечние с полом
             var plateNormal = new Vector3(0.0f, 0.5f, 0.0f);
             var intersect3 = new Vector2(PlaneIntersect(origin, direction, new Vector4(plateNormal, 1.0f)));
             if (intersect3.X > 0.0f && intersect3.X < minIntersect.X)
@@ -119,6 +120,37 @@ namespace RayCasting
                 return new Vector2(-1.0f, 0.0f);
             h = (float)Math.Sqrt(h);
             return new Vector2(-b - h, -b + h);
+        }
+
+        private float BoxSphereIntersect(Vector3 ro, Vector3 rd, float ra)
+        {
+            var r2 = ra * ra;
+            var d2 = rd * rd; var d3 = d2 * rd;
+            var o2 = ro * ro; var o3 = o2 * ro;
+            float ka = 1.0f / Vector3.Dot(d2, d2);
+            float k3 = ka * Vector3.Dot(ro, d3);
+            float k2 = ka * Vector3.Dot(o2, d2);
+            float k1 = ka * Vector3.Dot(o3, rd);
+            float k0 = ka * (Vector3.Dot(o2, o2) - r2 * r2);
+            float c2 = k2 - k3 * k3;
+            float c1 = k1 + 2.0f * k3 * k3 * k3 - 3.0f * k3 * k2;
+            float c0 = k0 - 3.0f * k3 * k3 * k3 * k3 + 6.0f * k3 * k3 * k2 - 4.0f * k3 * k1;
+            float p = c2 * c2 + c0 / 3.0f;
+            float q = c2 * c2 * c2 - c2 * c0 + c1 * c1;
+            float h = q * q - p * p * p;
+            if (h < 0.0) return -1.0f; //no intersection
+            float sh = (float)Math.Sqrt(h);
+            float s = (float)(Math.Sign(q + sh) * Math.Pow(Math.Abs(q + sh), 1.0 / 3.0)); // cuberoot
+            float t = (float)(Math.Sign(q - sh) * Math.Pow(Math.Abs(q - sh), 1.0 / 3.0)); // cuberoot
+            var w = new Vector2(s + t, s - t);
+            var v = new Vector2(w.X + c2 * 4.0f, w.Y * (float)Math.Sqrt(3.0)) * 0.5f;
+            float r = (float)Math.Sqrt(v.X * v.X + v.Y * v.Y);
+            return -Math.Abs(v.Y) / (float)Math.Sqrt(r + v.X) - c1 / r - k3;
+        }
+
+        private Vector3 NorGoursat(Vector3 pos, float ka, float kb)
+        {
+            return Vector3.Normalize(4.0f * pos * pos * pos - 2.0f * pos * kb);
         }
 
         private float gouIntersect(Vector3 ro, Vector3 rd, float ka, float kb)
