@@ -120,5 +120,78 @@ namespace RayCasting
             h = (float)Math.Sqrt(h);
             return new Vector2(-b - h, -b + h);
         }
+
+        private float gouIntersect(Vector3 ro, Vector3 rd, float ka, float kb)
+        {
+            var po = 1.0f;
+            var rd2 = ro * ro;
+            var rd3 = rd2 * rd;
+            var ro2 = ro * ro;
+            var ro3 = ro2 * ro;
+            var k4 = Vector3.Dot(rd2, rd2);
+            var k3 = Vector3.Dot(ro, rd3);
+            var k2 = Vector3.Dot(ro2, rd2) - kb / 6.0f;
+            var k1 = Vector3.Dot(ro3, rd) - kb * Vector3.Dot(rd, ro) / 2.0f;
+            var k0 = Vector3.Dot(ro2, ro2) + ka - kb * Vector3.Dot(ro, ro);
+            k3 /= k4;
+            k2 /= k4;
+            k1 /= k4;
+            k0 /= k4;
+            var c2 = k2 - k3 * k3;
+            var c1 = k1 + k3 * (2.0f * k3 * k3 - 3.0f * k2);
+            var c0 = k0 + k3 * (k3 * (c2 + k2) * 3.0f - 4.0f * k1);
+
+            if (Math.Abs(c1) < 0.1f * Math.Abs(c2))
+            {
+                po = -1.0f;
+                var tmp = k1;
+                k1 = k3;
+                k3 = tmp;
+                k0 = 1.0f / k0;
+                k1 = k1 * k0;
+                k2 = k2 * k0;
+                k3 = k3 * k0;
+                c2 = k2 - k3 * (k3);
+                c1 = k1 + k3 * (2.0f * k3 * k3 - 3.0f * k2);
+                c0 = k0 + k3 * (k3 * (c2 + k2) * 3.0f - 4.0f * k1);
+            }
+
+            c0 /= 3.0f;
+            var Q = c2 * c2 + c0;
+            var R = c2 * c2 * c2 - 3.0f * c0 * c2 + c1 * c1;
+            var h = R * R - Q * Q * Q;
+
+            if (h > 0.0f) // 2 intersections
+            {
+                h = (float)Math.Sqrt(h);
+                var s = Math.Sign(R + h) * Math.Pow(Math.Abs(R + h), 1.0f / 3.0f); // cube root
+                var u = Math.Sign(R - h) * Math.Pow(Math.Abs(R - h), 1.0f / 3.0f); // cube root
+                var x = s + u + 4.0 * c2;
+                var y = s - u;
+                var ks = x * x + y * y * 3.0f;
+                var k = (float)Math.Sqrt(ks);
+                var _t = -0.5f * po * Math.Abs(y) * Math.Sqrt(6.0f / (k + x)) - 2.0 * c1 * (k + x) / (ks + x * k) - k3;
+                return (po < 0.0f) ? 1.0f / (float)_t : (float)_t;
+            }
+
+            // 4 intersections
+            var sQ = (float)Math.Sqrt(Q);
+            var w = sQ * Math.Cos(Math.Acos(-R / (sQ * Q)) / 3.0);
+            var d2 = -w - c2;
+            if (d2 < 0.0) return -1.0f; //no intersection
+            var d1 = (float)Math.Sqrt(d2);
+            var h1 = Math.Sqrt(w - 2.0 * c2 + c1 / d1);
+            var h2 = Math.Sqrt(w - 2.0 * c2 - c1 / d1);
+            var t1 = -d1 - h1 - k3; t1 = (po < 0.0) ? 1.0 / t1 : t1;
+            var t2 = -d1 + h1 - k3; t2 = (po < 0.0) ? 1.0 / t2 : t2;
+            var t3 = d1 - h2 - k3; t3 = (po < 0.0) ? 1.0 / t3 : t3;
+            var t4 = d1 + h2 - k3; t4 = (po < 0.0) ? 1.0 / t4 : t4;
+            var t = 1e20;
+            if (t1 > 0.0) t = t1;
+            if (t2 > 0.0) t = Math.Min(t, t2);
+            if (t3 > 0.0) t = Math.Min(t, t3);
+            if (t4 > 0.0) t = Math.Min(t, t4);
+            return (float)t;
+        }
     }
 }
