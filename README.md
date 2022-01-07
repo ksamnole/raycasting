@@ -14,6 +14,7 @@
   - Поворот камеры, объекта и источника света.
 
 ## Примеры
+![Ray tracing with boxSphere, spheres and plane](RayCasting/examples/BoxSphere.png)
 ![Ray tracing with reflection and color](RayCasting/examples/WithReflectionAndColor.png)
 ![Ray tracing with strong lighting](RayCasting/examples/StrongLighting.png)
 ![Ray tracing without reflection and color](RayCasting/examples/WithoutReflectionAndColor.png)
