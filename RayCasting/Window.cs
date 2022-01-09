@@ -11,7 +11,7 @@ namespace RayCasting
 {
     public class Window : GameWindow
     {
-        private float rotation = -1.0f;
+        private float rotation = 1.0f;
 
         public Window(int width, int height) : base(width, height) { }
 
@@ -27,26 +27,30 @@ namespace RayCasting
             GL.ClearColor(OpenTK.Graphics.Color4.CornflowerBlue);
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            var cameraOrigin = new Vector3(0.0f, 0.0f, -3.0f);
+            var cameraOrigin = new Vector3(-5.0f, 0.0f, 0.0f);
             GL.Begin(PrimitiveType.Points);
             // Пускаем лучи в каждый пиксель экрана
             for (var x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
                 {
                     // Берем координаты в нашем окне. Окно от -1 до 1, в то время как пиксели от 0 до ???
-                    var _x = (2 * x - Width) / (float)Width;
-                    var _y = (2 * y - Height) / (float)Height;
+                    var _y = (2 * x - Width) / (float)Width;
+                    var _z = (2 * y - Height) / (float)Height;
                     // Направление камеры
-                    var cameraDirection = Vector3.Normalize(new Vector3(_x, _y, 1.0f));
+                    var cameraDirection = Vector3.Normalize(new Vector3(1.0f, _y, _z));
                     // Цвет пикселя. Если попал в объект, то цвет объекта, иначе цвет неба.
                     var col = CastRay(cameraOrigin, cameraDirection);
+                    if (col.X == -1.0f)
+                        col = new Vector3(0.3f, 0.6f, 1.0f);
+                    //else if (CastRay(cameraOrigin, Vector3.Normalize(new Vector3(-0.5f, 0.75f, 1.0f))).X == -1.0f)
+                    //    col *= 0.5f;
                     // Цвета будут более реалистичные
                     col.X = (float)Math.Pow(col.X, 0.45);
                     col.Y = (float)Math.Pow(col.Y, 0.45);
                     col.Z = (float)Math.Pow(col.Z, 0.45);
                     // Красим пиксель
                     GL.Color3(col);
-                    GL.Vertex3(_x, _y, 0);
+                    GL.Vertex2(_y, _z);
                 }
             GL.End();
 
@@ -58,12 +62,20 @@ namespace RayCasting
 
         private Vector3 CastRay(Vector3 origin, Vector3 direction)
         {
+            /* Координата X - это отдаление и приближение, Y - вправо,влево, Z - вверх, вниз
+             * X = -5, Y = 1, Z = 1
+             * Возле камеры, правее, сверху
+             */
+            // Направление освещения
+            //var light = Vector3.Normalize(new Vector3(-0.5f, 0.75f, 1.0f));
+            var light = Vector3.Normalize(new Vector3((float)Math.Cos(rotation), (float)Math.Sin(rotation), 1.0f));
+
             var minIntersect = new Vector2(float.MaxValue);
             var color = new Vector3(0.5f, 0.5f, 1.0f);
             Vector3 n = Vector3.Zero;
             // Пересечение с 1 сферой
-            var sphere1Pos = new Vector3(0.75f, -0.25f, -1.0f);
-            var intersect1 = SphereIntersect(origin - sphere1Pos, direction, 0.7f);
+            var sphere1Pos = new Vector3(0.0f, 2.0f, 0.5f);
+            var intersect1 = SphereIntersect(origin - sphere1Pos, direction, 1.5f);
             if (intersect1.X > 0.0f && intersect1.X < minIntersect.X)
             {
                 minIntersect = intersect1;
@@ -72,8 +84,8 @@ namespace RayCasting
                 color = new Vector3(1.0f, 0.2f, 0.1f);
             }
             // Пересечение со 2 сферой
-            var sphere2Pos = new Vector3(0.0f, -0.5f, -1.65f);
-            var intersect2 = SphereIntersect(origin - sphere2Pos, direction, 0.35f);
+            var sphere2Pos = new Vector3(-2.0f, 0.0f, 0.0f);
+            var intersect2 = SphereIntersect(origin - sphere2Pos, direction, 1.0f);
             if (intersect2.X > 0.0f && intersect2.X < minIntersect.X)
             {
                 minIntersect = intersect2;
@@ -82,17 +94,20 @@ namespace RayCasting
                 color = new Vector3(255f / 255, 165f / 255, 201f / 255);
             }
             // Пересечние с полом
-            var plateNormal = new Vector3(0.0f, 0.5f, 0.0f);
+            var plateNormal = new Vector3(0.0f, 0.0f, 1.0f);
             var intersect3 = new Vector2(PlaneIntersect(origin, direction, new Vector4(plateNormal, 1.0f)));
             if (intersect3.X > 0.0f && intersect3.X < minIntersect.X)
             {
                 minIntersect = intersect3;
                 n = plateNormal;
                 color = new Vector3(0.5f, 0.5f, 1.0f);
+                var planeOrigin = origin + direction * minIntersect.X;
+                if (CastRay(planeOrigin, light).X != -1.0f)
+                    color *= 0.5f;
             }
             // Пересеченик с BoxSphere
-            var posboxSphere = new Vector3(-0.65f, 0.0f, -1.0f);
-            var intersect4 = new Vector2(BoxSphereIntersect(origin - posboxSphere, direction, 0.65f));
+            var posboxSphere = new Vector3(0.0f, -2.0f, 0.5f);
+            var intersect4 = new Vector2(BoxSphereIntersect(origin - posboxSphere, direction, 1.5f));
             if (intersect4.X > 0.0f && intersect4.X < minIntersect.X)
             {
                 minIntersect = intersect4;
@@ -102,9 +117,7 @@ namespace RayCasting
             }
             // Проверка попал ли луч в объект, если нет то возвращаем цвет неба.
             if (minIntersect.X == float.MaxValue)
-                return new Vector3(0.3f, 0.6f, 1.0f);
-            // Направление освещения
-            var light = Vector3.Normalize(new Vector3((float)Math.Cos(rotation), 1f, -0.75f));
+                return new Vector3(-1.0f);
             // Расчет освещения
             var diffuse = Math.Max(0.0f, Vector3.Dot(light, n)) * 0.5f + 0.1f;
             // Добавляем отражение
