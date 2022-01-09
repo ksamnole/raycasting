@@ -13,7 +13,8 @@
   - Возможность создавать несколько объектов, источников освещения и располагать объекты в любых координатах.
   - Поворот камеры, объекта и источника света.
 
-## Примеры
+## Этапы и примеры
+![Ray tracing with shadows](RayCasting/examples/WithShadows.png)
 ![Ray tracing with boxSphere, spheres and plane](RayCasting/examples/BoxSphere.png)
 ![Ray tracing with reflection and color](RayCasting/examples/WithReflectionAndColor.png)
 ![Ray tracing with strong lighting](RayCasting/examples/StrongLighting.png)
