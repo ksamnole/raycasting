@@ -133,6 +133,35 @@ namespace RayCasting
             return -(Vector3.Dot(origin, p.Xyz) + p.W) / Vector3.Dot(direction, p.Xyz);
         }
 
+        private float CapIntersect(in Vector3 ro, in Vector3 rd, in Vector3 pa, in Vector3 pb, in float ra)
+        {
+            var ba = pb - pa;
+            var oa = ro - pa;
+            float baba = Vector3.Dot(ba, ba);
+            float bard = Vector3.Dot(ba, rd);
+            float baoa = Vector3.Dot(ba, oa);
+            float rdoa = Vector3.Dot(rd, oa);
+            float oaoa = Vector3.Dot(oa, oa);
+            float a = baba - bard * bard;
+            float b = baba * rdoa - baoa * bard;
+            float c = baba * oaoa - baoa * baoa - ra * ra * baba;
+            float h = b * b - a * c;
+            if (h >= 0.0)
+            {
+                float t = (-b - (float)Math.Sqrt(h)) / a;
+                float y = baoa + t * bard;
+                // body
+                if (y > 0.0 && y < baba) return t;
+                // caps
+                var oc = (y <= 0.0) ? oa : ro - pb;
+                b = Vector3.Dot(rd, oc);
+                c = Vector3.Dot(oc, oc) - ra * ra;
+                h = b * b - c;
+                if (h > 0.0) return (float)(-b - Math.Sqrt(h));
+            }
+            return -1.0f;
+        }
+
         private Vector2 BoxIntersect(Vector3 ro, Vector3 rd, Vector3 boxSize)
         {
             var m = new Vector3(1.0f / rd.X, 1.0f / rd.Y, 1.0f / rd.Z); // can precompute if traversing a set of aligned boxes
