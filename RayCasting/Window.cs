@@ -133,7 +133,7 @@ namespace RayCasting
             return -(Vector3.Dot(origin, p.Xyz) + p.W) / Vector3.Dot(direction, p.Xyz);
         }
 
-        private float CapIntersect(in Vector3 ro, in Vector3 rd, in Vector3 pa, in Vector3 pb, in float ra)
+        private float CapIntersect(Vector3 ro, Vector3 rd, Vector3 pa, Vector3 pb, float ra)
         {
             var ba = pb - pa;
             var oa = ro - pa;
