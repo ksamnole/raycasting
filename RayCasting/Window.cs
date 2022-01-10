@@ -133,6 +133,19 @@ namespace RayCasting
             return -(Vector3.Dot(origin, p.Xyz) + p.W) / Vector3.Dot(direction, p.Xyz);
         }
 
+        private Vector2 BoxIntersect(Vector3 ro, Vector3 rd, Vector3 boxSize)
+        {
+            var m = new Vector3(1.0f / rd.X, 1.0f / rd.Y, 1.0f / rd.Z); // can precompute if traversing a set of aligned boxes
+            var n = m * ro;   // can precompute if traversing a set of aligned boxes
+            var k = new Vector3(Math.Abs(m.X), Math.Abs(m.Y), Math.Abs(m.Z)) * boxSize;
+            var t1 = -n - k;
+            var t2 = -n + k;
+            float tN = Math.Max(Math.Max(t1.X, t1.Y), t1.Z);
+            float tF = Math.Min(Math.Min(t2.X, t2.Y), t2.Z);
+            if (tN > tF || tF < 0.0) return new Vector2(-1.0f); // no intersection
+            return new Vector2(tN, tF);
+        }
+
         private Vector2 SphereIntersect(Vector3 origin, Vector3 direction, float radius)
         {
             // Метод пересечения луча со сферой
